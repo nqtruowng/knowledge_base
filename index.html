@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ứng dụng Suy diễn</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="sidebar-logo">My App</div>
+        <div class="sidebar-nav">
+          <a class="sidebar-nav-item active" data-target="view-quanlyluat">
+            <i class="fas fa-gavel"></i> Quản lý luật
+          </a>
+          <a class="sidebar-nav-item" data-target="view-fpg">
+            <i class="fas fa-project-diagram"></i> Vẽ đồ thị FPG
+          </a>
+          <a class="sidebar-nav-item" data-target="view-rpg">
+            <i class="fas fa-share-alt"></i> Vẽ đồ thị RPG
+          </a>
+          <a class="sidebar-nav-item" data-target="view-suyendientien">
+            <i class="fas fa-arrow-right"></i> Suy diễn tiến
+          </a>
+          <a class="sidebar-nav-item" data-target="view-suyendienlui">
+            <i class="fas fa-arrow-left"></i> Suy diễn lùi
+          </a>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <div id="view-quanlyluat" class="view active">
+          <header class="main-header">
+            <h1>Quản lý luật</h1>
+            <div class="action-buttons">
+              <button onclick="triggerCsvImport()">Import (từ CSV)</button>
+              <button class="button-primary" onclick="showModal('add')">
+                Thêm luật mới
+              </button>
+            </div>
+          </header>
+          <div class="main-body">
+            <table class="content-table" id="ruleTable">
+              <thead>
+                <tr>
+                  <th>Vế trái (IF)</th>
+                  <th>Vế phải (THEN)</th>
+                  <th>Hành động</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-fpg" class="view">
+          <header class="main-header"><h1>Vẽ đồ thị FPG</h1></header>
+          <div class="main-body">
+            <div class="graph-canvas">(Khu vực hiển thị Đồ thị FPG)</div>
+          </div>
+        </div>
+
+        <div id="view-rpg" class="view">
+          <header class="main-header"><h1>Vẽ đồ thị RPG</h1></header>
+          <div class="main-body">
+            <div class="graph-canvas">(Khu vực hiển thị Đồ thị RPG)</div>
+          </div>
+        </div>
+
+        <div id="view-suyendientien" class="view">
+          <header class="main-header"><h1>Suy diễn tiến</h1></header>
+          <div class="main-body">
+            <div class="inference-view">
+              <div class="input-group">
+                <label for="facts-input-forward">Giả thiết (Facts):</label>
+                <input
+                  type="text"
+                  id="facts-input-forward"
+                  placeholder="Ví dụ: A, B, D"
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="goal-input-forward">Kết luận (Đích):</label>
+                <input
+                  type="text"
+                  id="goal-input-forward"
+                  placeholder="Ví dụ: E (Để trống nếu muốn suy diễn tất cả)"
+                />
+              </div>
+
+              <div class="input-group">
+                <label>Phương pháp:</label>
+                <div class="checkbox-group">
+                  <label>
+                    <input
+                      type="radio"
+                      name="forward-method"
+                      value="stack"
+                      checked
+                    />
+                    Stack (DFS)
+                  </label>
+                  <label>
+                    <input type="radio" name="forward-method" value="queue" />
+                    Queue (BFS)
+                  </label>
+                  <label>
+                    <input type="radio" name="forward-method" value="fpg" /> FPG
+                  </label>
+                  <label>
+                    <input type="radio" name="forward-method" value="rpg" /> RPG
+                  </label>
+                </div>
+              </div>
+
+              <button class="button-primary" style="align-self: flex-start">
+                Bắt đầu suy diễn
+              </button>
+              <h3>Kết quả (Log):</h3>
+              <div class="output-log">
+                (Các bước suy diễn sẽ xuất hiện ở đây...)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-suyendienlui" class="view">
+          <header class="main-header"><h1>Suy diễn lùi</h1></header>
+          <div class="main-body">
+            <div class="inference-view">
+              <div class="input-group">
+                <label for="goal-input-backward">Mục tiêu (Kết luận):</label>
+                <input
+                  type="text"
+                  id="goal-input-backward"
+                  placeholder="Ví dụ: E"
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="facts-input-backward"
+                  >Giả thiết ban đầu (Facts):</label
+                >
+                <input
+                  type="text"
+                  id="facts-input-backward"
+                  placeholder="Ví dụ: A, B (Các sự thật đã biết)"
+                />
+              </div>
+
+              <div class="input-group">
+                <label>Tùy chọn:</label>
+                <div class="checkbox-group">
+                  <label>
+                    <input type="radio" name="backward-option" value="min" />
+                    Min
+                  </label>
+                  <label>
+                    <input type="radio" name="backward-option" value="max" />
+                    Max
+                  </label>
+                  <label>
+                    <input type="radio" name="backward-option" value="fpg" />
+                    FPG
+                  </label>
+                </div>
+              </div>
+
+              <button class="button-primary" style="align-self: flex-start">
+                Tìm kiếm
+              </button>
+              <h3>Kết quả (Log):</h3>
+              <div class="output-log">
+                (Quá trình tìm kiếm sẽ xuất hiện ở đây...)
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <input type="file" id="csvFileInput" accept=".csv" style="display: none" />
+
+    <div id="ruleModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2 id="modalTitle">Thêm luật mới</h2>
+        <form id="ruleForm">
+          <input type="hidden" id="modalRuleIndex" />
+          <div class="modal-form-group">
+            <label for="modalVeTrai">Vế trái (IF):</label>
+            <input
+              type="text"
+              id="modalVeTrai"
+              required
+              placeholder="Ví dụ: a^b"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label for="modalVePhai">Vế phải (THEN):</label>
+            <input
+              type="text"
+              id="modalVePhai"
+              required
+              placeholder="Ví dụ: c"
+            />
+          </div>
+          <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="hideModal()">
+              Hủy
+            </button>
+            <button type="submit" class="btn-save">Lưu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

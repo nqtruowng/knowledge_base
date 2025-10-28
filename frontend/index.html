@@ -8,8 +8,18 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
-    <link rel="stylesheet" href="index.css">
-    <script src="index.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"
+    ></script>
+
+    <link rel="stylesheet" href="index.css" />
+    <script src="index.js" defer></script>
   </head>
   <body>
     <div class="app-container">
@@ -62,27 +72,63 @@
         <div id="view-fpg" class="view">
           <header class="main-header"><h1>Vẽ đồ thị FPG</h1></header>
           <div class="main-body">
-            <div class="graph-canvas">(Khu vực hiển thị Đồ thị FPG)</div>
+            <button
+              id="btn-draw-fpg"
+              class="button-primary"
+              style="margin-bottom: 15px"
+            >
+              Vẽ đồ thị FPG
+            </button>
+            <div class="graph-canvas" id="fpg-canvas">
+              (Click nút "Vẽ đồ thị FPG" để hiển thị)
+            </div>
+
+            <button
+              type="button"
+              class="button-secondary"
+              onclick="showHelpModal('fpg')"
+              style="margin-top: 15px"
+            >
+              <i class="fas fa-question-circle"></i> Hướng dẫn đọc đồ thị FPG
+            </button>
           </div>
         </div>
 
         <div id="view-rpg" class="view">
           <header class="main-header"><h1>Vẽ đồ thị RPG</h1></header>
           <div class="main-body">
-            <div class="graph-canvas">(Khu vực hiển thị Đồ thị RPG)</div>
+            <button
+              id="btn-draw-rpg"
+              class="button-primary"
+              style="margin-bottom: 15px"
+            >
+              Vẽ đồ thị RPG
+            </button>
+            <div class="graph-canvas" id="rpg-canvas">
+              (Click nút "Vẽ đồ thị RPG" để hiển thị)
+            </div>
+
+            <button
+              type="button"
+              class="button-secondary"
+              onclick="showHelpModal('rpg')"
+              style="margin-top: 15px"
+            >
+              <i class="fas fa-question-circle"></i> Hướng dẫn đọc đồ thị RPG
+            </button>
           </div>
         </div>
 
         <div id="view-suyendientien" class="view">
           <header class="main-header"><h1>Suy diễn tiến</h1></header>
           <div class="main-body">
-            <div class="inference-view">
+            <form class="inference-view" id="form-forward">
               <div class="input-group">
                 <label for="facts-input-forward">Giả thiết (Facts):</label>
                 <input
                   type="text"
                   id="facts-input-forward"
-                  placeholder="Ví dụ: A, B, D"
+                  placeholder="Ví dụ: a"
                 />
               </div>
 
@@ -91,7 +137,7 @@
                 <input
                   type="text"
                   id="goal-input-forward"
-                  placeholder="Ví dụ: E (Để trống nếu muốn suy diễn tất cả)"
+                  placeholder="Ví dụ: e (Để trống nếu muốn suy diễn tất cả)"
                 />
               </div>
 
@@ -112,6 +158,14 @@
                     Queue (BFS)
                   </label>
                   <label>
+                    <input type="radio" name="forward-method" value="min" />
+                    Chỉ số Min
+                  </label>
+                  <label>
+                    <input type="radio" name="forward-method" value="max" />
+                    Chỉ số Max
+                  </label>
+                  <label>
                     <input type="radio" name="forward-method" value="fpg" /> FPG
                   </label>
                   <label>
@@ -120,27 +174,38 @@
                 </div>
               </div>
 
-              <button class="button-primary" style="align-self: flex-start">
+              <button
+                type="submit"
+                class="button-primary"
+                style="align-self: flex-start"
+              >
                 Bắt đầu suy diễn
               </button>
+
+              <h3>Bảng tóm tắt suy diễn:</h3>
+              <div id="table-forward-container" class="table-container">
+                (Bảng các bước suy diễn sẽ xuất hiện ở đây...)
+              </div>
+
               <h3>Kết quả (Log):</h3>
-              <div class="output-log">
+              <div class="output-log" id="log-forward">
                 (Các bước suy diễn sẽ xuất hiện ở đây...)
               </div>
-            </div>
+            </form>
           </div>
         </div>
 
         <div id="view-suyendienlui" class="view">
           <header class="main-header"><h1>Suy diễn lùi</h1></header>
           <div class="main-body">
-            <div class="inference-view">
+            <form class="inference-view" id="form-backward">
               <div class="input-group">
                 <label for="goal-input-backward">Mục tiêu (Kết luận):</label>
                 <input
                   type="text"
                   id="goal-input-backward"
-                  placeholder="Ví dụ: E"
+                  required
+                  placeholder="Ví dụ: e"
                 />
               </div>
 
@@ -151,7 +216,7 @@
                 <input
                   type="text"
                   id="facts-input-backward"
-                  placeholder="Ví dụ: A, B (Các sự thật đã biết)"
+                  placeholder="Ví dụ: a (Các sự thật đã biết)"
                 />
               </div>
 
@@ -159,12 +224,17 @@
                 <label>Tùy chọn:</label>
                 <div class="checkbox-group">
                   <label>
-                    <input type="radio" name="backward-option" value="min" />
-                    Min
+                    <input
+                      type="radio"
+                      name="backward-option"
+                      value="min"
+                      checked
+                    />
+                    Chỉ số Min
                   </label>
                   <label>
                     <input type="radio" name="backward-option" value="max" />
-                    Max
+                    Chỉ số Max
                   </label>
                   <label>
                     <input type="radio" name="backward-option" value="fpg" />
@@ -173,14 +243,28 @@
                 </div>
               </div>
 
-              <button class="button-primary" style="align-self: flex-start">
+              <button
+                type="submit"
+                class="button-primary"
+                style="align-self: flex-start"
+              >
                 Tìm kiếm
               </button>
+
+              <h3>Đồ thị tìm kiếm (Cây AND/OR):</h3>
+              <div
+                class="graph-canvas"
+                id="backward-graph-canvas"
+                style="margin-bottom: 20px"
+              >
+                (Đồ thị cây tìm kiếm sẽ xuất hiện ở đây...)
+              </div>
+
               <h3>Kết quả (Log):</h3>
-              <div class="output-log">
+              <div class="output-log" id="log-backward">
                 (Quá trình tìm kiếm sẽ xuất hiện ở đây...)
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </main>
@@ -201,6 +285,9 @@
               required
               placeholder="Ví dụ: a^b"
             />
+            <small style="color: #555; margin-top: 5px; display: block">
+              Chỉ hỗ trợ logic HỘI (dùng dấu <b>^</b>). Ví dụ: a^b^c
+            </small>
           </div>
           <div class="modal-form-group">
             <label for="modalVePhai">Vế phải (THEN):</label>
@@ -210,6 +297,9 @@
               required
               placeholder="Ví dụ: c"
             />
+            <small style="color: #555; margin-top: 5px; display: block">
+              Chỉ hỗ trợ <b>một</b> sự kiện duy nhất.
+            </small>
           </div>
           <div class="modal-buttons">
             <button type="button" class="btn-cancel" onclick="hideModal()">
@@ -220,5 +310,19 @@
         </form>
       </div>
     </div>
+
+    <div id="helpModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2 id="helpModalTitle">Hướng dẫn</h2>
+        <div id="helpModalBody" class="explanation-box-modal">
+          </div>
+        <div class="modal-buttons" style="justify-content: center;">
+          <button type="button" class="btn-save" onclick="hideHelpModal()">
+            Đã hiểu
+          </button>
+        </div>
+      </div>
+    </div>
+    
   </body>
 </html>

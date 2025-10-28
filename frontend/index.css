@@ -91,6 +91,29 @@ html {
   border-color: #007bff;
 }
 
+/* 🚩 THÊM MỚI (YÊU CẦU 2): Style cho nút "Hướng dẫn" */
+.main-header .action-buttons .button-secondary,
+.main-body .button-secondary {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  font-size: 14px;
+}
+.main-body .button-secondary {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+.main-body .button-secondary:hover {
+  background-color: #5a6268;
+}
+.main-body .button-secondary i {
+  margin-right: 5px;
+}
+
+
 .main-body {
   padding: 30px;
 }
@@ -161,14 +184,23 @@ html {
   font-size: 1rem;
   box-sizing: border-box; /* Thêm để padding không làm vỡ layout */
 }
+
 .inference-view .output-log {
-  background-color: #222;
-  color: #0f0;
+  background-color: #f9f9f9; /* Nền sáng */
+  color: #333; /* Chữ đen */
   padding: 15px;
   border-radius: 5px;
+  border: 1px solid #eee;
   min-height: 200px;
-  font-family: monospace;
+  font-family: Arial, sans-serif; /* Font dễ đọc hơn */
+  line-height: 1.6; /* Tăng dãn dòng */
 }
+.inference-view .output-log p {
+  margin: 0 0 5px 0;
+  padding: 0;
+  word-break: break-word; /* Tránh tràn log ngang */
+}
+
 .graph-canvas {
   width: 100%;
   height: 60vh;
@@ -238,7 +270,7 @@ html {
   color: white;
 }
 
-/* 8. [CSS MỚI] CHO CHECKBOX VÀ RADIO */
+/* 8. CSS CHO CHECKBOX VÀ RADIO */
 .checkbox-group {
   display: flex;
   flex-wrap: wrap;
@@ -259,4 +291,52 @@ html {
 .checkbox-group input {
   margin: 0;
   width: auto; /* Reset lại width */
+}
+
+/* 🚩 XÓA BỎ (YÊU CẦU 2): Xóa .explanation-box cũ */
+/* .explanation-box { ... } */
+
+/* 🚩 THÊM MỚI (YÊU CẦU 2): CSS cho nội dung Hướng dẫn BÊN TRONG MODAL */
+.explanation-box-modal {
+  margin-top: 15px;
+  /* padding: 20px; */ /* Padding đã có ở modal-content */
+  background-color: #fdfdfd;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+.explanation-box-modal h3 {
+  margin: 0;
+  padding: 15px 20px;
+  color: #0056b3; /* Màu tiêu đề */
+  border-bottom: 1px solid #e0e0e0;
+}
+.explanation-box-modal ul {
+  padding: 15px 20px 15px 40px; /* Thêm padding-left */
+  margin: 0;
+  line-height: 1.7;
+  color: #333;
+}
+.explanation-box-modal p {
+  padding: 15px 20px;
+  margin: 0;
+  line-height: 1.7;
+  color: #333;
+}
+.explanation-box-modal ul li {
+    margin-bottom: 5px; /* Khoảng cách giữa các item */
+}
+
+
+/* 10. CSS CHO CONTAINER BẢNG */
+.table-container {
+  max-height: 400px; /* Giới hạn chiều cao và cho phép cuộn */
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 20px; /* Khoảng cách với log bên dưới */
+}
+.table-container .content-table {
+  box-shadow: none; /* Bỏ shadow bên trong */
+  border-radius: 0;
+  margin-bottom: 0;
 }

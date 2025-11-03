@@ -43,6 +43,11 @@ class KnowledgeBase:
             self.rules.pop(index)
         else:
             raise IndexError("Không tìm thấy luật để xóa.")
+            
+    # 🚩 THÊM MỚI (YÊU CẦU 2)
+    def clear_all_rules(self):
+        """Xóa tất cả luật."""
+        self.rules = []
 
     def get_all_rules_serializable(self):
         """Lấy tất cả luật ở định dạng có thể gửi qua JSON."""
@@ -56,9 +61,5 @@ class KnowledgeBase:
         """
         Lấy danh sách luật đã được phân tích cho các thuật toán suy diễn.
         """
-        # --- 🚩 SỬA LỖI TẠI ĐÂY ---
         # Trả về MỘT BẢN SAO của danh sách luật đầy đủ.
-        # Các Chainer/Builder sẽ nhận đầy đủ {'left', 'right', 'raw_left', 'raw_right'}
-        # (Hàm .copy() tạo một bản sao nông (shallow copy) của dict)
         return [rule.copy() for rule in self.rules]
-        # ------------------------

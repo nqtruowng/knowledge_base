@@ -22,7 +22,8 @@ class GraphBuilder:
         for i, rule in enumerate(self.rules):
             q = rule['right']
             for f in rule['left']:
-                G.add_edge(f, q, label=f'r{i+1}')
+                # 🚩 YÊU CẦU 3: Bỏ label (nhãn) khỏi cạnh để tránh rối
+                G.add_edge(f, q) 
         self.fpg = G
         return G
 
@@ -61,6 +62,8 @@ class GraphBuilder:
         edges = []
         for u, v, data in G.edges(data=True):
             edge_data = {'from': u, 'to': v}
+            # Bỏ kiểm tra 'label' vì đã xóa ở _build_fpg
+            # (RPG vẫn có thể có label nếu bạn thêm, nhưng FPG không còn)
             if 'label' in data:
                 edge_data['label'] = data['label']
             edges.append(edge_data)

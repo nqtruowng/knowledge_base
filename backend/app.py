@@ -49,6 +49,16 @@ def delete_rule(index):
     except IndexError as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
+# 🚩 THÊM MỚI (YÊU CẦU 2)
+@app.route('/api/rules/clear_all', methods=['DELETE'])
+def clear_all_rules():
+    """Xóa toàn bộ luật trong KB."""
+    try:
+        kb.clear_all_rules()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/api/import_csv', methods=['POST'])
 def import_csv():
     """Nhập luật từ file CSV."""
@@ -74,17 +84,13 @@ def import_csv():
                         left, right = parts[0].strip(), parts[1].strip()
                         index = kb.add_rule(left, right)
                         
-                        # --- SỬA LỖI TẠI ĐÂY ---
-                        # Lấy luật vừa thêm từ KB
                         rule_data = kb.rules[index]
-                        # Tạo một đối tượng an toàn cho JSON
                         serializable_rule = {
                             'index': index,
                             'left': rule_data['raw_left'],
                             'right': rule_data['raw_right']
                         }
                         new_rules.append(serializable_rule)
-                        # ---------------------
                         
         return jsonify({'status': 'success', 'new_rules': new_rules})
     except Exception as e:

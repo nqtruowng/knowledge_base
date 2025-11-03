@@ -3,46 +3,40 @@ import copy
 
 class BackwardChainer:
     def __init__(self, rules, gt_str, kl_str, method):
-        self.rules = copy.deepcopy(rules) # List dạng [{'left': {'a', 'b'}, 'right': 'c'}, ...]
+        self.rules = copy.deepcopy(rules)
         self.gt = set(f.strip() for f in gt_str.split(',') if f.strip())
-        self.kl_str = kl_str.strip() # Giả định suy diễn lùi 1 mục tiêu
-        self.method = method # 'min', 'max', 'fpg'
+        self.kl_str = kl_str.strip()
+        self.method = method
         
-        self.log = []
-        self.vet = [] # Vết suy diễn (thứ tự ngược)
+        self.summary_log = [] # Log tóm tắt (Bắt đầu, Kết luận, VET)
+        self.vet = []
         
         self.graph_builder = None
         if self.method == 'fpg':
             self.graph_builder = GraphBuilder(self.rules)
             
-        # 🚩 THÊM MỚI (YÊU CẦU 2): Dữ liệu cho đồ thị tìm kiếm
         self.graph_nodes = []
         self.graph_edges = []
         self.node_counter = 0
 
     def _format_set(self, s):
-        """Helper: Định dạng set thành chuỗi 'a,b,c'."""
         return ','.join(sorted(list(s)))
 
     def _format_list(self, l):
-        """Helper: Định dạng list thành chuỗi '1,2,3'."""
         return ','.join(map(str, l))
 
     def _find_rules_for_goal(self, goal):
-        """Tìm các luật (theo index) có vế phải là goal."""
         return [i for i, rule in enumerate(self.rules) if rule['right'] == goal]
 
     def _select_rules(self, rule_indices):
-        """Sắp xếp/chọn luật từ THOA(f) theo phương pháp."""
         if not rule_indices:
             return []
-            
         if self.method == 'min':
             return sorted(rule_indices)
         if self.method == 'max':
             return sorted(rule_indices, reverse=True)
-        
         if self.method == 'fpg':
+            # (Logic FPG của bạn giữ nguyên, không thay đổi)
             rule_heuristics = []
             for r_index in rule_indices:
                 rule = self.rules[r_index]
@@ -55,143 +49,165 @@ class BackwardChainer:
                     if dist > max_dist:
                         max_dist = dist
                 rule_heuristics.append((r_index, max_dist))
-            
             rule_heuristics.sort(key=lambda x: (x[1], x[0]))
             return [r_index for r_index, h_val in rule_heuristics]
-            
-        return sorted(rule_indices) # Mặc định là min
+        return sorted(rule_indices)
 
-    # 🚩 SỬA ĐỔI (YÊU CẦU 2): Sửa hàm _prove để xây dựng đồ thị
+    # 🚩 YÊU CẦU: THAY ĐỔI LỚN
+    # Hàm _prove giờ trả về 1 dictionary (log_node) thay vì boolean
     def _prove(self, goal, path, path_node_map, parent_node_id=None):
         """
         Hàm đệ quy chứng minh mục tiêu (goal).
-        parent_node_id: ID của nút cha (để vẽ cạnh)
-        path_node_map: dict theo dõi {goal: node_id} trên đường dẫn để phát hiện lặp
+        Trả về một đối tượng node cho cây log.
         """
-        indent = "  " * len(path)
-        self.log.append(f"{indent}Cần chứng minh: {goal}")
-
-        # Tạo nút cho mục tiêu (goal) này
+        
+        # 1. Tạo Node Log và Node Đồ Thị
+        log_node = {
+            'text': f"Cần chứng minh: {goal}",
+            'status': 'pending', # (Trạng thái: pending, gt, loop, failed, proven)
+            'children': []
+        }
+        
         current_node_id = self.node_counter
         self.node_counter += 1
-        node_data = {'id': current_node_id, 'label': goal}
+        graph_node_data = {'id': current_node_id, 'label': goal}
         
-        # Thêm cạnh từ cha (nếu có) đến nút này
         if parent_node_id is not None:
-            self.graph_edges.append({'from': parent_node_id, 'to': current_node_id})
+            self.graph_edges.append({'from': current_node_id, 'to': parent_node_id})
 
-        # 1. Kiểm tra GT
+        # 2. Kiểm tra GT (Base case 1)
         if goal in self.gt:
-            self.log.append(f"{indent}-> {goal} đã có trong GT. (True)")
-            node_data['group'] = 'gt' # Tô màu GT
-            self.graph_nodes.append(node_data)
-            return True
+            log_node['status'] = 'gt'
+            log_node['text'] = f"{goal} (Có trong GT ✅)"
+            graph_node_data['group'] = 'gt'
+            self.graph_nodes.append(graph_node_data)
+            return log_node
             
-        # 2. Kiểm tra vòng lặp
+        # 3. Kiểm tra vòng lặp (Base case 2)
         if goal in path:
-            self.log.append(f"{indent}-> Phát hiện vòng lặp (Quay lui): {goal} đã có trong đường dẫn.")
-            node_data['group'] = 'loop'
-            node_data['label'] += ' (Lặp)'
-            self.graph_nodes.append(node_data)
+            log_node['status'] = 'loop'
+            log_node['text'] = f"{goal} (Phát hiện lặp 🔄)"
+            graph_node_data['group'] = 'loop'
+            graph_node_data['label'] += ' (Lặp)'
+            self.graph_nodes.append(graph_node_data)
             
-            # Thêm cạnh "quay lui"
             original_node_id = path_node_map[goal]
             self.graph_edges.append({
-                'from': current_node_id, 
-                'to': original_node_id, 
+                'from': original_node_id, 
+                'to': current_node_id, 
                 'label': 'Quay lui', 
                 'dashes': True
             })
-            return False
+            return log_node
             
-        # Thêm nút vào đồ thị (sau khi check GT/Lặp)
-        self.graph_nodes.append(node_data)
-        path_node_map[goal] = current_node_id # Lưu id của nút này vào đường dẫn
+        self.graph_nodes.append(graph_node_data)
+        path_node_map[goal] = current_node_id
 
-        # 3. Tìm luật
+        # 4. Tìm luật
         applicable_rule_indices = self._find_rules_for_goal(goal)
         if not applicable_rule_indices:
-            self.log.append(f"{indent}-> Không có luật nào sinh ra {goal}. (False)")
-            node_data['group'] = 'failed' # Tô màu thất bại
-            return False
+            log_node['status'] = 'failed'
+            log_node['text'] = f"{goal} (Không có luật sinh ra ❌)"
+            graph_node_data['group'] = 'failed'
+            return log_node
             
-        # 4. Sắp xếp luật (THOA(f))
+        # 5. Sắp xếp luật (THOA)
         thoa = self._select_rules(applicable_rule_indices)
-        self.log.append(f"{indent}Các luật áp dụng (theo thứ tự {self.method}): {[f'r{i+1}' for i in thoa]}")
         
-        # 5. Thử từng luật
+        # 6. Thử từng luật (Recursive step)
         for r_index in thoa:
             rule = self.rules[r_index]
-            self.log.append(f"{indent}Thử luật r{r_index+1}: {rule['raw_left']} -> {rule['right']}")
             
-            # Tạo một "nút luật" (nút AND)
+            # Tạo node log cho việc "Thử luật"
+            rule_log_node = {
+                'text': f"Thử luật r{r_index+1}: {rule['raw_left']} -> {rule['right']}",
+                'status': 'pending',
+                'children': []
+            }
+            
+            # Tạo node đồ thị cho luật (nút AND)
             rule_node_id = self.node_counter
             self.node_counter += 1
             premise_label = ','.join(sorted(list(rule['left'])))
-            rule_node_data = {
+            rule_graph_node_data = {
                 'id': rule_node_id, 
                 'label': f'{{{premise_label}}} (r{r_index+1})',
-                'shape': 'box' # Nút luật là hình hộp
+                'shape': 'box'
             }
-            self.graph_nodes.append(rule_node_data)
-            # Nối 'goal' -> 'nút luật'
-            self.graph_edges.append({'from': current_node_id, 'to': rule_node_id})
+            self.graph_nodes.append(rule_graph_node_data)
+            self.graph_edges.append({'from': rule_node_id, 'to': current_node_id})
 
             all_premises_proven = True
-            premises = sorted(list(rule['left'])) # Chứng minh theo thứ tự alpha
+            premises = sorted(list(rule['left']))
             
             for premise in premises:
                 # Đệ quy chứng minh từng tiền đề
-                # Nút cha là 'nút luật' (rule_node_id)
-                if not self._prove(premise, path + [goal], path_node_map.copy(), rule_node_id):
-                    all_premises_proven = False
-                    self.log.append(f"{indent}-> Tiền đề {premise} của r{r_index+1} thất bại. (Quay lui)")
-                    rule_node_data['group'] = 'failed' # Tô màu nút luật thất bại
-                    break # Thử luật tiếp theo
-            
-            if all_premises_proven:
-                self.log.append(f"{indent}-> Tất cả tiền đề của r{r_index+1} là True.")
-                self.log.append(f"{indent}-> {goal} được chứng minh là True.")
-                self.vet.append(r_index + 1) # Thêm vào VET
-                node_data['group'] = 'proven' # Tô màu nút goal thành công
-                rule_node_data['group'] = 'proven' # Tô màu nút luật thành công
-                return True
+                premise_log_node = self._prove(premise, path + [goal], path_node_map.copy(), rule_node_id)
                 
-        # 6. Nếu thử hết luật mà không thành công
-        self.log.append(f"{indent}-> Đã thử hết luật cho {goal} nhưng thất bại. (False)")
-        node_data['group'] = 'failed' # Tô màu nút goal thất bại
-        return False
+                # Thêm kết quả (con) vào node "Thử luật"
+                rule_log_node['children'].append(premise_log_node)
+                
+                if premise_log_node['status'] not in ['proven', 'gt']:
+                    all_premises_proven = False
+                    rule_graph_node_data['group'] = 'failed'
+                    rule_log_node['status'] = 'failed'
+                    break # Thất bại 1 tiền đề -> dừng thử luật này
+            
+            # Thêm node "Thử luật" (dù thất bại hay thành công) vào node "Mục tiêu"
+            log_node['children'].append(rule_log_node)
+
+            if all_premises_proven:
+                rule_log_node['status'] = 'proven'
+                log_node['status'] = 'proven'
+                log_node['text'] = f"{goal} (Đã chứng minh ✔️)"
+                
+                self.vet.append(r_index + 1)
+                graph_node_data['group'] = 'proven'
+                rule_graph_node_data['group'] = 'proven'
+                
+                # Trả về ngay khi tìm thấy 1 cách chứng minh
+                return log_node 
+                
+        # 7. Nếu thử hết luật mà không thành công
+        log_node['status'] = 'failed'
+        log_node['text'] = f"{goal} (Thất bại, hết luật ❌)"
+        graph_node_data['group'] = 'failed'
+        return log_node
 
     def run(self):
         """Thực thi thuật toán suy diễn lùi."""
         if not self.kl_str:
-            return {'status': 'Lỗi', 'log': ['Vui lòng nhập một mục tiêu (Kết luận)']}
+            return {'status': 'Lỗi', 'summary_log': ['Vui lòng nhập một mục tiêu (Kết luận)']}
             
-        # Reset đồ thị
         self.graph_nodes = []
         self.graph_edges = []
         self.node_counter = 0
+        self.summary_log = [] # Reset log
             
-        self.log.append(f"Bắt đầu suy diễn lùi cho mục tiêu: {self.kl_str}")
-        self.log.append(f"Giả thiết (GT): {{{self._format_set(self.gt)}}}")
-        self.log.append(f"Phương pháp chọn luật: {self.method.upper()}")
-        self.log.append("-" * 20)
+        self.summary_log.append(f"Bắt đầu suy diễn lùi cho mục tiêu: {self.kl_str}")
+        self.summary_log.append(f"Giả thiết (GT): {{{self._format_set(self.gt)}}}")
+        self.summary_log.append(f"Phương pháp chọn luật: {self.method.upper()}")
+        self.summary_log.append("-" * 20)
         
-        is_proven = self._prove(self.kl_str, [], {})
+        # Gọi hàm đệ quy mới
+        log_tree_root = self._prove(self.kl_str, [], {})
         
-        self.log.append("-" * 20)
+        is_proven = log_tree_root['status'] in ['proven', 'gt']
+        
+        self.summary_log.append("-" * 20)
         if is_proven:
             result = "Thành công"
-            self.log.append(f"Kết luận: {result}. Mục tiêu {self.kl_str} đã được chứng minh.")
+            self.summary_log.append(f"Kết luận: {result}. Mục tiêu {self.kl_str} đã được chứng minh.")
             self.vet.reverse()
-            self.log.append(f"Vết suy diễn (VET): {self._format_list(self.vet)}")
+            self.summary_log.append(f"Vết suy diễn (VET): {self._format_list(self.vet)}")
         else:
             result = "Thất bại"
-            self.log.append(f"Kết luận: {result}. Không thể chứng minh mục tiêu {self.kl_str}.")
+            self.summary_log.append(f"Kết luận: {result}. Không thể chứng minh mục tiêu {self.kl_str}.")
             
         return {
             'status': result, 
-            'log': self.log, 
+            'summary_log': self.summary_log, # Log tóm tắt
+            'log_tree': log_tree_root,    # Cây log chi tiết
             'vet': self.vet,
             'graph_data': {'nodes': self.graph_nodes, 'edges': self.graph_edges}
         }

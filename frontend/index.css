@@ -1,18 +1,23 @@
+/* =========================================
+   1. GLOBAL & LAYOUT
+   ========================================= */
 body,
 html {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   height: 100vh;
   background-color: #f4f7fa;
 }
+
 .app-container {
   display: flex;
   height: 100vh;
 }
 
-/* 2. SIDEBAR (BÊN TRÁI) */
+/* =========================================
+   2. SIDEBAR (BÊN TRÁI)
+   ========================================= */
 .sidebar {
   width: 250px;
   background-color: #1a1a1a;
@@ -22,6 +27,7 @@ html {
   flex-direction: column;
   flex-shrink: 0;
 }
+
 .sidebar-logo {
   font-size: 1.5rem;
   font-weight: bold;
@@ -29,9 +35,11 @@ html {
   padding: 0 20px 20px 20px;
   text-align: center;
 }
+
 .sidebar-nav {
   flex-grow: 1;
 }
+
 .sidebar-nav-item {
   display: flex;
   align-items: center;
@@ -41,28 +49,34 @@ html {
   transition: background-color 0.2s, color 0.2s;
   cursor: pointer;
 }
+
 .sidebar-nav-item i {
   margin-right: 15px;
   width: 20px;
   text-align: center;
 }
+
 .sidebar-nav-item:hover {
   background-color: #333;
   color: white;
 }
+
 .sidebar-nav-item.active {
   background-color: #4caf50;
   color: white;
   font-weight: bold;
 }
 
-/* 3. MAIN CONTENT (BÊN PHẢI) */
+/* =========================================
+   3. MAIN CONTENT (BÊN PHẢI)
+   ========================================= */
 .main-content {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
+
 .main-header {
   background-color: white;
   padding: 20px 30px;
@@ -72,40 +86,65 @@ html {
   align-items: center;
   flex-shrink: 0;
 }
+
 .main-header h1 {
   margin: 0;
   font-size: 1.8rem;
 }
-.main-header .action-buttons button {
+
+.main-body {
+  padding: 30px;
+}
+
+/* --- BUTTON STYLES --- */
+.main-header .action-buttons button,
+.button-primary,
+.button-danger,
+.button-secondary {
   margin-left: 10px;
   padding: 10px 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #f9f9f9;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s;
 }
-.main-header .action-buttons .button-primary {
+
+/* Primary Button */
+.main-header .action-buttons .button-primary,
+.button-primary {
   background-color: #007bff;
   color: white;
   border-color: #007bff;
 }
-
-/* 🚩 THÊM MỚI (YÊU CẦU 2): Style cho nút "Hướng dẫn" */
-.main-header .action-buttons .button-secondary,
-.main-body .button-secondary {
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  font-size: 14px;
+.main-header .action-buttons .button-primary:hover,
+.button-primary:hover {
+  background-color: #0069d9;
 }
+
+/* Danger Button */
+.main-header .action-buttons .button-danger,
+.button-danger {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+.main-header .action-buttons .button-danger:hover,
+.button-danger:hover {
+  background-color: #c82333;
+}
+.main-header .action-buttons .button-danger i {
+  margin-right: 5px;
+}
+
+/* Secondary Button */
+.main-header .action-buttons .button-secondary,
 .main-body .button-secondary {
   background-color: #6c757d;
   color: white;
   border-color: #6c757d;
 }
+.main-header .action-buttons .button-secondary:hover,
 .main-body .button-secondary:hover {
   background-color: #5a6268;
 }
@@ -113,12 +152,37 @@ html {
   margin-right: 5px;
 }
 
-
-.main-body {
-  padding: 30px;
+/* Guide Button (Nút Hướng dẫn) */
+.btn-guide-how-to {
+  background-color: #17a2b8; /* Màu xanh Cyan */
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px; /* Bo tròn kiểu pill */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* 4. QUẢN LÝ CÁC GIAO DIỆN (VIEW) */
+.btn-guide-how-to:hover {
+  background-color: #138496;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-guide-how-to i {
+  font-size: 16px;
+}
+
+/* =========================================
+   4. QUẢN LÝ VIEW & TABLES
+   ========================================= */
 .view {
   display: none;
 }
@@ -126,7 +190,6 @@ html {
   display: block;
 }
 
-/* 5. CSS CHO BẢNG QUẢN LÝ LUẬT */
 .content-table {
   width: 100%;
   border-collapse: collapse;
@@ -135,12 +198,14 @@ html {
   border-radius: 8px;
   overflow: hidden;
 }
+
 .content-table th,
 .content-table td {
   padding: 15px 20px;
   text-align: left;
   border-bottom: 1px solid #eee;
 }
+
 .content-table th {
   background-color: #f9f9f9;
   font-weight: 600;
@@ -153,54 +218,107 @@ html {
   border-radius: 4px;
   cursor: pointer;
 }
+
 .action-cell .btn-edit {
   background-color: #ffc107;
   color: black;
 }
+
 .action-cell .btn-delete {
   background-color: #dc3545;
   color: white;
 }
 
-/* 6. CSS CHO CÁC VIEW KHÁC */
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.table-container .content-table {
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+/* =========================================
+   5. INFERENCE VIEW (SUY DIỄN)
+   ========================================= */
 .inference-view {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
+
 .inference-view .input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .inference-view label {
   font-weight: 600;
 }
+
 .inference-view input[type="text"] {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  box-sizing: border-box; /* Thêm để padding không làm vỡ layout */
+  box-sizing: border-box;
 }
 
 .inference-view .output-log {
-  background-color: #f9f9f9; /* Nền sáng */
-  color: #333; /* Chữ đen */
+  background-color: #f9f9f9;
+  color: #333;
   padding: 15px;
   border-radius: 5px;
   border: 1px solid #eee;
   min-height: 200px;
-  font-family: Arial, sans-serif; /* Font dễ đọc hơn */
-  line-height: 1.6; /* Tăng dãn dòng */
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
 }
+
 .inference-view .output-log p {
   margin: 0 0 5px 0;
   padding: 0;
-  word-break: break-word; /* Tránh tràn log ngang */
+  word-break: break-word;
 }
 
+/* --- Split Layout (Chia đôi màn hình cho FPG) --- */
+.split-container {
+  display: flex;
+  gap: 20px;
+  height: 600px;
+}
+
+.split-left {
+  flex: 1;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+  padding-right: 10px;
+}
+
+.split-right {
+  flex: 1;
+  background-color: #fff;
+  border: 1px dashed #ccc;
+  position: relative;
+}
+
+.split-right:empty::before {
+  content: "Đồ thị FPG sẽ hiển thị tại đây";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #999;
+}
+
+/* --- Graph Canvas --- */
 .graph-canvas {
   width: 100%;
   height: 60vh;
@@ -212,7 +330,162 @@ html {
   color: #999;
 }
 
-/* 7. CSS CHO MODAL (POP-UP) */
+/* =========================================
+   6. LOG STYLES (KẾT QUẢ SUY DIỄN)
+   ========================================= */
+
+/* --- Dạng Thẻ (Card Layout - Mới) --- */
+.log-step-card {
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border-left: 5px solid #ccc;
+  transition: transform 0.2s;
+}
+
+.log-step-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.step-number {
+  font-size: 0.85em;
+  color: #888;
+  font-weight: bold;
+}
+
+.logic-badge {
+  font-size: 0.75em;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.step-icon {
+  margin-left: auto;
+  font-size: 1.2em;
+}
+
+.step-content {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.step-message b {
+  color: #000;
+  font-weight: 700;
+}
+
+.step-extra {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #eee;
+  font-family: "Consolas", monospace;
+  font-size: 0.9em;
+  color: #555;
+  background-color: #f9f9f9;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+/* Box tính toán heuristic */
+.calc-box {
+  margin-top: 10px;
+  background-color: #fff3cd;
+  border-left: 3px solid #ffecb5;
+  padding: 8px;
+  font-size: 0.9em;
+  color: #664d03;
+  border-radius: 4px;
+}
+
+.calc-box b {
+  color: #d35400;
+}
+
+/* Màu sắc trạng thái Card */
+.step-default { border-left-color: #ced4da; }
+.step-info { border-left-color: #17a2b8; background-color: #f0fcff; }
+.step-warning { border-left-color: #ffc107; background-color: #fffdf5; }
+.step-success { border-left-color: #28a745; background-color: #f3fff5; }
+.step-danger { border-left-color: #dc3545; background-color: #fff5f5; }
+.step-final-success {
+  border-left-color: #28a745;
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+}
+.step-final-failed {
+  border-left-color: #dc3545;
+  background-color: #f8d7da;
+  border: 2px solid #dc3545;
+}
+
+/* --- Dạng Cây (Tree Layout - Cũ/Backup) --- */
+.output-log ul {
+  list-style-type: none;
+  padding-left: 25px;
+  margin: 0;
+  border-left: 1px dashed #ccc;
+}
+.output-log li {
+  position: relative;
+}
+.log-tree-root {
+  padding-left: 0 !important;
+  border-left: none;
+  margin-top: 10px;
+}
+.log-tree-node > span {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 3px;
+  transition: background-color 0.2s;
+  font-family: Consolas, "Courier New", monospace;
+}
+.log-tree-node > span:hover {
+  background-color: #e9ecef;
+}
+.log-tree-node > span::before {
+  content: '▼';
+  display: inline-block;
+  width: 1em;
+  margin-right: 6px;
+  font-size: 0.8em;
+  color: #666;
+  transition: transform 0.1s linear;
+}
+.log-tree-node.collapsed > .log-tree-children {
+  display: none;
+}
+.log-tree-node.collapsed > span::before {
+  transform: rotate(-90deg);
+}
+/* Màu sắc trạng thái Tree */
+.status-proven > span { background-color: #e6ffed; border: 1px solid #b6e9c5; color: #1e4620; }
+.status-failed > span { background-color: #fff0f1; border: 1px solid #f5c6cb; color: #58151c; }
+.status-gt > span { background-color: #e7f3fe; border: 1px solid #baddfb; color: #004085; }
+.status-loop > span { background-color: #fff8e1; border: 1px solid #ffeeba; color: #664d00; }
+.status-pending > span { background-color: #f8f9fa; border: 1px solid #e0e0e0; color: #444; }
+
+/* =========================================
+   7. MODAL & POPUPS
+   ========================================= */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -225,6 +498,7 @@ html {
   align-items: center;
   z-index: 1000;
 }
+
 .modal-content {
   background-color: white;
   padding: 30px;
@@ -232,17 +506,21 @@ html {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 500px;
 }
+
 .modal-content h2 {
   margin-top: 0;
 }
+
 .modal-form-group {
   margin-bottom: 15px;
 }
+
 .modal-form-group label {
   display: block;
   margin-bottom: 5px;
   font-weight: 600;
 }
+
 .modal-form-group input {
   width: 100%;
   padding: 10px;
@@ -250,93 +528,86 @@ html {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 }
+
 .modal-buttons button {
   padding: 10px 15px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
+
 .modal-buttons .btn-cancel {
   background-color: #f0f0f0;
 }
+
 .modal-buttons .btn-save {
   background-color: #007bff;
   color: white;
 }
 
-/* 8. CSS CHO CHECKBOX VÀ RADIO */
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px; /* Tăng khoảng cách */
-  margin-top: 5px;
-  background-color: #fdfdfd;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-}
-.checkbox-group label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: normal; /* Ghi đè label cha */
-  cursor: pointer;
-}
-.checkbox-group input {
-  margin: 0;
-  width: auto; /* Reset lại width */
-}
-
-/* 🚩 XÓA BỎ (YÊU CẦU 2): Xóa .explanation-box cũ */
-/* .explanation-box { ... } */
-
-/* 🚩 THÊM MỚI (YÊU CẦU 2): CSS cho nội dung Hướng dẫn BÊN TRONG MODAL */
+/* Explanation Box (Trong Modal Hướng dẫn) */
 .explanation-box-modal {
   margin-top: 15px;
-  /* padding: 20px; */ /* Padding đã có ở modal-content */
   background-color: #fdfdfd;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
 }
+
 .explanation-box-modal h3 {
   margin: 0;
   padding: 15px 20px;
-  color: #0056b3; /* Màu tiêu đề */
+  color: #0056b3;
   border-bottom: 1px solid #e0e0e0;
 }
+
 .explanation-box-modal ul {
-  padding: 15px 20px 15px 40px; /* Thêm padding-left */
+  padding: 15px 20px 15px 40px;
   margin: 0;
   line-height: 1.7;
   color: #333;
 }
+
 .explanation-box-modal p {
   padding: 15px 20px;
   margin: 0;
   line-height: 1.7;
   color: #333;
 }
+
 .explanation-box-modal ul li {
-    margin-bottom: 5px; /* Khoảng cách giữa các item */
+  margin-bottom: 5px;
 }
 
-
-/* 10. CSS CHO CONTAINER BẢNG */
-.table-container {
-  max-height: 400px; /* Giới hạn chiều cao và cho phép cuộn */
-  overflow-y: auto;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 20px; /* Khoảng cách với log bên dưới */
+/* =========================================
+   8. CHECKBOX & RADIO
+   ========================================= */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 5px;
+  background-color: #fdfdfd;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
 }
-.table-container .content-table {
-  box-shadow: none; /* Bỏ shadow bên trong */
-  border-radius: 0;
-  margin-bottom: 0;
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.checkbox-group input {
+  margin: 0;
+  width: auto;
 }

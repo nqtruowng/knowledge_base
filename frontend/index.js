@@ -1,6 +1,117 @@
 // Khai báo API endpoint
 const API_URL = "http://127.0.0.1:5001"; // Port của server Flask
 
+const methodExplanations = {
+  forward: {
+    stack: `
+      <h3>Chiến lược Stack (Ngăn xếp - DFS)</h3>
+      <p><b>Nguyên lý:</b> Last In, First Out (Vào sau, Ra trước).</p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Khi tập <b>THOA</b> (các luật thỏa mãn) có nhiều luật, thuật toán sẽ chọn luật <b>mới nhất</b> vừa được thêm vào.</li>
+        <li>Nếu xét theo danh sách, nó sẽ lấy phần tử ở <b>cuối cùng</b> của danh sách THOA.</li>
+      </ul>
+      <p><i>Ví dụ: THOA = {r1, r2}. Tìm thấy r3 thỏa mãn -> THOA = {r1, r2, r3}. Chọn r3.</i></p>
+    `,
+    queue: `
+      <h3>Chiến lược Queue (Hàng đợi - BFS)</h3>
+      <p><b>Nguyên lý:</b> First In, First Out (Vào trước, Ra trước).</p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Thuật toán sẽ chọn luật <b>cũ nhất</b> (luật đã nằm trong THOA lâu nhất).</li>
+        <li>Nếu xét theo danh sách, nó sẽ lấy phần tử ở <b>đầu tiên</b> của danh sách THOA.</li>
+      </ul>
+      <p><i>Ví dụ: THOA = {r1, r2}. Chọn r1.</i></p>
+    `,
+    min: `
+      <h3>Chiến lược Chỉ số Min</h3>
+      <p><b>Nguyên lý:</b> Ưu tiên thứ tự luật trong cơ sở tri thức.</p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Trong tập <b>THOA</b>, chọn luật có <b>chỉ số nhỏ nhất</b> (xuất hiện sớm nhất trong danh sách luật ban đầu).</li>
+      </ul>
+    `,
+    max: `
+      <h3>Chiến lược Chỉ số Max</h3>
+      <p><b>Nguyên lý:</b> Ưu tiên thứ tự luật trong cơ sở tri thức (ngược).</p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Trong tập <b>THOA</b>, chọn luật có <b>chỉ số lớn nhất</b>.</li>
+      </ul>
+    `,
+    fpg: `
+      <h3>Chiến lược FPG (Facts Precedence Graph)</h3>
+      <p><b>Nguyên lý:</b> Heuristic dựa trên khoảng cách sự kiện.</p>
+      <p><b>Công thức:</b> <code>h(r) = KC(Vế_Phải(r), Tập_KL)</code></p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Với mỗi luật trong THOA, tính khoảng cách ngắn nhất trên đồ thị FPG từ sự kiện sinh ra (vế phải) đến sự kiện đích (KL).</li>
+        <li>Chọn luật có khoảng cách <b>h nhỏ nhất</b> (gần đích nhất).</li>
+      </ul>
+    `,
+    rpg: `
+      <h3>Chiến lược RPG (Rules Precedence Graph)</h3>
+      <p><b>Nguyên lý:</b> Heuristic dựa trên khoảng cách giữa các luật.</p>
+      <p><b>Công thức:</b> <code>h(r) = KC(r, Tập_Luật_Đích_RKL)</code></p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Tính khoảng cách trên đồ thị RPG từ luật hiện tại đến tập các luật sinh ra kết luận (RKL).</li>
+        <li>Chọn luật có <b>h nhỏ nhất</b>.</li>
+      </ul>
+    `
+  },
+  backward: {
+    min: `
+      <h3>Chiến lược Chỉ số Min (Suy diễn lùi)</h3>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Khi có nhiều luật cùng sinh ra mục tiêu hiện tại, chọn luật có <b>chỉ số nhỏ nhất</b> để thử trước.</li>
+        <li>Đây là chiến lược tìm kiếm mù quáng (Blind Search).</li>
+      </ul>
+    `,
+    max: `
+      <h3>Chiến lược Chỉ số Max (Suy diễn lùi)</h3>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Khi có nhiều luật cùng sinh ra mục tiêu hiện tại, chọn luật có <b>chỉ số lớn nhất</b> để thử trước.</li>
+      </ul>
+    `,
+    fpg: `
+      <h3>Chiến lược FPG (Suy diễn lùi)</h3>
+      <p><b>Nguyên lý:</b> Chọn luật có tiền đề dễ chứng minh nhất (gần GT nhất).</p>
+      <p><b>Công thức:</b> <code>h(r) = MAX( KC(Tiền_đề_i, Tập_GT) )</code></p>
+      <p><b>Cách chọn luật:</b></p>
+      <ul>
+        <li>Với mỗi luật có thể sinh ra mục tiêu, xét tất cả các sự kiện ở vế trái (tiền đề).</li>
+        <li>Tính khoảng cách từ sự kiện đó về Giả thiết (GT).</li>
+        <li>Chọn luật mà các tiền đề của nó <b>gần GT nhất</b> (h nhỏ nhất).</li>
+      </ul>
+    `
+  }
+};
+
+// --- HÀM HIỂN THỊ MODAL HƯỚNG DẪN ---
+function showMethodGuide(type, method) {
+  const content = methodExplanations[type][method];
+  if (content) {
+    document.getElementById("helpModalTitle").textContent = "Hướng dẫn cách làm";
+    document.getElementById("helpModalBody").innerHTML = content;
+    document.getElementById("helpModal").style.display = "flex";
+  }
+}
+
+// --- HÀM TẠO BUTTON HƯỚNG DẪN ---
+function createGuideButton(type, method) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-guide-how-to"; // Class CSS mới
+  btn.innerHTML = '<i class="fas fa-book-open"></i> Hướng dẫn cách làm';
+  btn.onclick = () => showMethodGuide(type, method);
+  return btn;
+}
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
   // --- 1. XỬ LÝ CHUYỂN TAB (VIEW) ---
   const navItems = document.querySelectorAll(".sidebar-nav-item");
@@ -174,9 +285,9 @@ const fpgHelpContent = `
       Mỗi <b>nút (node)</b> là một sự kiện (ví dụ: 'a', 'b').
     </li>
     <li>
-      Một <b>cung (edge)</b> đi từ 'a' đến 'b' (nhãn 'r1') có nghĩa
+      Một <b>cung (edge)</b> đi từ 'a' đến 'b' có nghĩa
       là "sự kiện 'a' là tiền đề để suy ra sự kiện 'b' thông qua
-      luật r1".
+      một (hoặc nhiều) luật".
     </li>
     <li>
       Các nút <b>Giả thiết (GT)</b> (nếu có) được tô màu xanh.
@@ -252,7 +363,7 @@ function addRuleToTable(veTrai, vePhai, ruleIndex) {
   actionCell.className = "action-cell";
   actionCell.innerHTML = `
                 <button class="btn-edit" onclick="editRule(${ruleIndex})">Sửa</button>
-                <button class="btn-delete" onclick="deleteRule(${ruleIndex}, this)">Xóa</button>
+                <button class.btn-delete" onclick="deleteRule(${ruleIndex}, this)">Xóa</button>
             `;
 }
 
@@ -276,14 +387,37 @@ async function deleteRule(ruleIndex, button) {
       });
       const data = await response.json();
       if (data.status === "success") {
-        const row = button.closest("tr");
-        row.remove();
+        loadRulesFromAPI(); // Tải lại bảng để đồng bộ index
       } else {
         alert("Lỗi khi xóa luật: " + data.message);
       }
     } catch (error) {
       console.error("Error deleting rule:", error);
       alert("Lỗi kết nối khi xóa luật.");
+    }
+  }
+}
+
+async function deleteAllRules() {
+  if (
+    confirm(
+      "BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ LUẬT KHÔNG?\n\nHành động này không thể hoàn tác."
+    )
+  ) {
+    try {
+      const response = await fetch(`${API_URL}/api/rules/clear_all`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        loadRulesFromAPI();
+        alert("Đã xóa tất cả luật thành công.");
+      } else {
+        alert("Lỗi khi xóa tất cả luật: " + data.message);
+      }
+    } catch (error) {
+      console.error("Error clearing all rules:", error);
+      alert("Lỗi kết nối khi xóa tất cả luật.");
     }
   }
 }
@@ -454,17 +588,16 @@ function drawTraceTable(containerId, traceData) {
 
 async function runForwardChaining(event) {
   event.preventDefault();
-  const logEl = document.getElementById("log-forward");
+  const logWrapper = document.getElementById("log-forward");
   const tableEl = document.getElementById("table-forward-container");
 
-  logEl.innerHTML = "(Đang suy diễn, vui lòng chờ...)";
+  logWrapper.innerHTML = "(Đang suy diễn...)";
   tableEl.innerHTML = "";
+  logWrapper.parentElement.classList.remove("split-left");
 
   const facts = document.getElementById("facts-input-forward").value;
   const goal = document.getElementById("goal-input-forward").value;
-  const method = document.querySelector(
-    'input[name="forward-method"]:checked'
-  ).value;
+  const method = document.querySelector('input[name="forward-method"]:checked').value;
 
   try {
     const response = await fetch(`${API_URL}/api/forward`, {
@@ -474,46 +607,160 @@ async function runForwardChaining(event) {
     });
     const data = await response.json();
 
-    writeLog("log-forward", data.log);
+    // 1. TẠO BUTTON HƯỚNG DẪN
+    const guideBtn = createGuideButton('forward', method);
+
+    // 2. XỬ LÝ HIỂN THỊ LOG
+    if (method === 'fpg' || method === 'rpg') {
+         logWrapper.innerHTML = `
+            <div class="split-container">
+                <div class="split-left" id="forward-split-log"></div>
+                <div class="split-right" id="forward-split-graph"></div>
+            </div>
+         `;
+         
+         const splitLog = document.getElementById("forward-split-log");
+         
+         // CHÈN BUTTON VÀO ĐẦU LOG
+         splitLog.appendChild(guideBtn); 
+         
+         // CHÈN LOG TEXT
+         data.log.forEach((line) => {
+            const div = document.createElement("div");
+            div.innerHTML = line;
+            div.style.marginBottom = "10px";
+            splitLog.appendChild(div);
+         });
+         
+         if (data.graph_data) {
+             drawGraph("forward-split-graph", data.graph_data, "LR");
+         } else {
+             document.getElementById("forward-split-graph").innerText = "(Không có dữ liệu đồ thị)";
+         }
+
+    } else {
+        // LAYOUT THƯỜNG
+        logWrapper.innerHTML = "";
+        
+        // CHÈN BUTTON VÀO ĐẦU LOG
+        logWrapper.appendChild(guideBtn);
+
+        data.log.forEach((line) => {
+            const div = document.createElement("div");
+            div.innerHTML = line;
+            div.style.marginBottom = "10px";
+            logWrapper.appendChild(div);
+        });
+    }
+
     drawTraceTable("table-forward-container", data.trace_table);
+    
   } catch (e) {
-    writeLog("log-forward", ["Lỗi kết nối đến server: " + e.message]);
-    tableEl.innerHTML = "(Lỗi, không thể tạo bảng)";
+    logWrapper.innerHTML = "Lỗi: " + e.message;
   }
 }
-
-async function runBackwardChaining(event) {
-  event.preventDefault();
-  const logEl = document.getElementById("log-backward");
-  const graphEl = document.getElementById("backward-graph-canvas");
-
-  logEl.innerHTML = "(Đang tìm kiếm, vui lòng chờ...)";
-  graphEl.innerHTML = "(Đồ thị tìm kiếm sẽ xuất hiện ở đây...)";
-
-  const facts = document.getElementById("facts-input-backward").value;
-  const goal = document.getElementById("goal-input-backward").value;
-  const method = document.querySelector(
-    'input[name="backward-option"]:checked'
-  ).value;
-
-  try {
-    const response = await fetch(`${API_URL}/api/backward`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ facts, goal, method }),
-    });
-    const data = await response.json();
-
-    writeLog("log-backward", data.log);
-
-    if (data.graph_data) {
-      // 🚩 SỬA LỖI: Đổi 'UD' thành 'LR' để vẽ ngang
-      drawGraph("backward-graph-canvas", data.graph_data, "LR");
-    } else {
-      graphEl.innerHTML = "(Không có dữ liệu đồ thị để vẽ)";
+// 🚩 HÀM MỚI: Đệ quy vẽ cây log từ đối tượng JSON
+// --- Cập nhật hàm buildLogTree để hiển thị calc_log ---
+function buildLogTree(logNode) {
+    const li = document.createElement("li");
+    li.className = "log-tree-node status-" + logNode.status;
+  
+    const span = document.createElement("span");
+    span.textContent = logNode.text;
+    
+    span.onclick = (e) => {
+      e.stopPropagation();
+      li.classList.toggle("collapsed");
+    };
+    li.appendChild(span);
+  
+    // [NEW] Hiển thị log tính toán FPG nếu có
+    if (logNode.calc_log) {
+        const calcDiv = document.createElement("div");
+        calcDiv.innerHTML = logNode.calc_log; // Sử dụng innerHTML vì backend trả về thẻ <br>, <b>
+        li.appendChild(calcDiv);
     }
-  } catch (e) {
-    writeLog("log-backward", ["Lỗi kết nối đến server: " + e.message]);
-    graphEl.innerHTML = "(Lỗi, không thể vẽ đồ thị)";
-  }
+  
+    if (logNode.children && logNode.children.length > 0) {
+      const ul = document.createElement("ul");
+      ul.className = "log-tree-children";
+      if (logNode.status === 'failed') {
+          li.classList.add('collapsed');
+      }
+      logNode.children.forEach((childNode) => {
+        ul.appendChild(buildLogTree(childNode));
+      });
+      li.appendChild(ul);
+    }
+  
+    return li;
+}
+
+// --- Cập nhật hàm runBackwardChaining ---
+async function runBackwardChaining(event) {
+    event.preventDefault();
+    
+    const logContainer = document.getElementById("log-backward");
+    const facts = document.getElementById("facts-input-backward").value;
+    const goal = document.getElementById("goal-input-backward").value;
+    const method = document.querySelector('input[name="backward-option"]:checked').value;
+  
+    logContainer.innerHTML = "(Đang tìm kiếm...)";
+    logContainer.parentElement.classList.remove("split-left");
+  
+    try {
+      const response = await fetch(`${API_URL}/api/backward`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ facts, goal, method }),
+      });
+      const data = await response.json();
+      
+      // 1. TẠO BUTTON HƯỚNG DẪN
+      // Chúng ta sẽ chèn button này vào chuỗi HTML hoặc appendChild sau
+      const guideBtn = createGuideButton('backward', method);
+      
+      let logContentHTML = "";
+      if (data.summary_log) {
+          data.summary_log.forEach(line => logContentHTML += `<p>${line}</p>`);
+          logContentHTML += "<hr>";
+      }
+      if (data.linear_log) {
+          data.linear_log.forEach(stepHtml => logContentHTML += stepHtml);
+      }
+      
+      if (method === 'fpg') {
+          logContainer.innerHTML = `
+            <div class="split-container">
+                <div class="split-left" id="split-log-content"></div>
+                <div class="split-right" id="split-fpg-canvas"></div>
+            </div>
+          `;
+          
+          const splitLog = document.getElementById("split-log-content");
+          // CHÈN BUTTON TRƯỚC
+          splitLog.appendChild(guideBtn);
+          // CHÈN NỘI DUNG LOG SAU
+          // Lưu ý: phải dùng div wrap hoặc insertAdjacentHTML vì guideBtn là Element object
+          const contentDiv = document.createElement('div');
+          contentDiv.innerHTML = logContentHTML;
+          splitLog.appendChild(contentDiv);
+          
+          if (data.fpg_data) drawGraph("split-fpg-canvas", data.fpg_data, "LR");
+          
+      } else {
+          logContainer.innerHTML = "";
+          logContainer.appendChild(guideBtn);
+          const contentDiv = document.createElement('div');
+          contentDiv.innerHTML = logContentHTML;
+          logContainer.appendChild(contentDiv);
+      }
+      
+      if (data.graph_data) {
+          drawGraph("backward-graph-canvas", data.graph_data, "RL");
+      }
+  
+    } catch (e) {
+      logContainer.innerHTML = "Lỗi: " + e.message;
+    }
 }
